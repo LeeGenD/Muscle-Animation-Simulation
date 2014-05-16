@@ -1,3 +1,4 @@
+var m_arr;
 (function(){
 
 	var SCREEN_WIDTH = window.innerWidth;
@@ -8,7 +9,7 @@
 	
 	var camera, scene;
 	var renderer;
-	var morph, materials_arr = [];
+	var morph, materials_arr = m_arr = [];
 	
 	var mesh;
 	
@@ -120,7 +121,7 @@
 		//loader.load( "./three.js webgl - skinning + morphing [knight]_files/wholeman.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, -300, 60 ) } );
 				
 		//wholeman_onlyBody
-		loader.load( "./javascripts/wholeman.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, -300, 60 ) } );
+		loader.load( "./javascripts/wholeman5132.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, -300, 60 ) } );
 
 		//
 
@@ -142,14 +143,23 @@
 	function setMaterialsOpacity( materials, opacity){
 		for( var i = 0, len = materials.length; i < len; i++){	
 			var material = materials[ i ];
-			if( material.name == "MaterJ")
-				material.opacity = opacity;
+			material.opacity = opacity;
 		}
 	}
 	
 	function createScene( geometry, materials, x, y, z, s ) {
 				
-		materials_arr.push( materials);		
+		var muscular_materials = [], other_materials = [];
+		for( var i = 0, len = materials.length; i < len; i++){
+			console.log( materials[ i].name+','+i);
+			if( materials[ i].name.indexOf( "Muscular") !== -1){
+				muscular_materials.push( materials[ i]);
+			}
+			else{
+				other_materials.push( materials[ i]);
+			}
+		}
+		materials_arr.push( muscular_materials);
 				
 		var material = materials[ 0 ];
 		material.morphTargets = true;
@@ -168,7 +178,7 @@
 		*/		
 				//geometry.computeTangents();
 				
-		material.needsUpdate = true;
+		//material.needsUpdate = true;
 		geometry.buffersNeedUpdate = true;
 		geometry.uvsNeedUpdate = true;
 				
@@ -262,7 +272,7 @@
 
 	}
 	
-	//æ“çºµæŒ‰é’®
+	//²Ù×Ý°´Å¥
 	var btns = document.getElementById("controller").getElementsByTagName("span");
 	btns[ 0].addEventListener( "click", function(){
 		morph.position.y += 50;
@@ -286,7 +296,7 @@
 		camera.position.z += 50;
 	}, false);
 	
-	//é¼ æ ‡æ‹–æ‹½
+	//Êó±êÍÏ×§
 	var mousedown = false;
 	var startX, startY;
 	container.addEventListener( "mousedown", function( event){
@@ -306,7 +316,7 @@
 		mousedown = false;
 	}, false);
 	
-	//æ»šåŠ¨æ”¾å¤§ç¼©å°
+	//¹ö¶¯·Å´óËõÐ¡
 	var wheelHandler = function( event){
 		var delta = 0;  
         if (!event) /* For IE. */  
@@ -330,7 +340,7 @@
 	container.addEventListener('DOMMouseScroll', wheelHandler, false);
 	container.onmousewheel = wheelHandler;
 	
-	//æ‹–åŠ¨è°ƒèŠ‚é€æ˜Žåº¦
+	//ÍÏ¶¯µ÷½ÚÍ¸Ã÷¶È
 	var layer_btn = document.getElementById( "layer_btn");
 	var layer_btn_drag = false;
 	var layer_btn_startY;
@@ -357,7 +367,7 @@
 		layer_btn_drag = false;
 	}, false);
 	
-	//æ‹–åŠ¨è°ƒèŠ‚åŠ¨ç”»
+	//ÍÏ¶¯µ÷½Ú¶¯»­
 	var animation_btn = document.getElementById( "animation_btn");
 	var animation_btn_drag = false;
 	var animation_btn_startY;
@@ -379,8 +389,9 @@
 				morph.morphTargetInfluences[ lastKeyframe] = 1;
 			}
 			animation_btn_startY = event.clientY;
-			morph.morphTargetInfluences[ 12] = 1;
-			console.log( lastKeyframe+','+keyframes);
+			//morph.morphTargetInfluences[ 12] = 1;
+			//console.log( lastKeyframe+','+keyframes);
+			console.log( morph.morphTargetInfluences);
 		}
 	}, false);
 	document.addEventListener( "mouseup", function(){
