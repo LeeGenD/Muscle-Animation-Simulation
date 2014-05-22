@@ -121,7 +121,7 @@ var m_arr;
 		//loader.load( "./three.js webgl - skinning + morphing [knight]_files/wholeman.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, -300, 60 ) } );
 				
 		//wholeman_onlyBody
-		loader.load( "./javascripts/wholeman5132.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, -300, 60 ) } );
+		loader.load( "./javascripts/wholeman5202.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, -300, 60 ) } );
 
 		//
 
@@ -152,7 +152,8 @@ var m_arr;
 		var muscular_materials = [], other_materials = [];
 		for( var i = 0, len = materials.length; i < len; i++){
 			console.log( materials[ i].name+','+i);
-			if( materials[ i].name.indexOf( "Muscular") !== -1){
+			//if( materials[ i].name.indexOf( "Muscular") !== -1){
+			if( materials[ i].name.indexOf( "Skeletal_Skeleton") == -1){
 				muscular_materials.push( materials[ i]);
 			}
 			else{
@@ -162,9 +163,11 @@ var m_arr;
 		materials_arr.push( muscular_materials);
 				
 		var material = materials[ 0 ];
+		/*
 		material.morphTargets = true;
 		material.color.setHex( 0xffaaaa );
 		material.ambient.setHex( 0x222222 );
+		*/
 		for( var i = 0, len = materials.length; i < len; i++){	
 			material = materials[ i ];
 			material.morphTargets = true;
