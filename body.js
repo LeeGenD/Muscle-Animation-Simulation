@@ -10,6 +10,7 @@ var m_arr;
 	var camera, scene;
 	var renderer;
 	var morph, materials_arr = m_arr = [];
+	var mesh_arr = [];
 	
 	var mesh;
 	
@@ -121,8 +122,9 @@ var m_arr;
 		//loader.load( "./three.js webgl - skinning + morphing [knight]_files/wholeman.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, -300, 60 ) } );
 				
 		//wholeman_onlyBody
-		loader.load( "./javascripts/wholeman5202.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, -300, 60 ) } );
-
+		loader.load( "./javascripts/wholeman_skeletal_5231.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, -300, 60 ) } );
+		loader.load( "./javascripts/wholeman_muscular_5231.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, -300, 60 , addController) } );
+		
 		//
 
 		window.addEventListener( 'resize', onWindowResize, false );
@@ -143,25 +145,32 @@ var m_arr;
 	function setMaterialsOpacity( materials, opacity){
 		for( var i = 0, len = materials.length; i < len; i++){	
 			var material = materials[ i ];
-			material.opacity = opacity;
+			if( opacity === 0){
+				//material.visible = false;
+			}
+			else{
+				material.visible = true;
+				material.opacity = opacity;
+			}
 		}
 	}
 	
-	function createScene( geometry, materials, x, y, z, s ) {
+	function createScene( geometry, materials, x, y, z, s , callback) {
 				
 		var muscular_materials = [], other_materials = [];
 		for( var i = 0, len = materials.length; i < len; i++){
-			console.log( materials[ i].name+','+i);
-			//if( materials[ i].name.indexOf( "Muscular") !== -1){
-			if( materials[ i].name.indexOf( "Skeletal_Skeleton") == -1){
+			if( materials[ i].name.indexOf( "Muscular") !== -1){
+			//if( materials[ i].name.indexOf( "Skeletal_Skeleton") == -1){
 				muscular_materials.push( materials[ i]);
 			}
 			else{
 				other_materials.push( materials[ i]);
 			}
 		}
-		materials_arr.push( muscular_materials);
-				
+		if( muscular_materials.length){
+			materials_arr.push( muscular_materials);
+		}
+		
 		var material = materials[ 0 ];
 		/*
 		material.morphTargets = true;
@@ -171,15 +180,14 @@ var m_arr;
 		for( var i = 0, len = materials.length; i < len; i++){	
 			material = materials[ i ];
 			material.morphTargets = true;
+			material.transparent = true;
 			material.color.setHex( 0xffaaaa );
 			material.ambient.setHex( 0x222222 );
+			material.fog = false;
+			//material.alphaTest = 0.9;
+			//material.depthWrite = false;
 		}
-				
-		/*
-		var map = THREE.ImageUtils.loadTexture( "./three.js webgl - skinning + morphing [knight]_files/Female_body_diffuse.jpg" );
-		material.map = map;
-		*/		
-				//geometry.computeTangents();
+		console.log( materials[1]);
 				
 		//material.needsUpdate = true;
 		geometry.buffersNeedUpdate = true;
@@ -212,8 +220,11 @@ var m_arr;
 		morph.receiveShadow = true;
 		
 		scene.add( morph );
+		console.log( scene);
 		morph.morphTargetInfluences[ 0] = 1;
 		console.log( morph.morphTargetInfluences);
+		
+		mesh_arr.push( morph);
 		/*
 		var cubeGeometry = new THREE.CubeGeometry(150, 150, 150); 
 		var cubeMaterials = [ 
@@ -235,7 +246,8 @@ var m_arr;
                  cubeMesh.position.set( x, -100, z); 
                  scene.add(cubeMesh); 
 		*/
-				
+		
+		if( callback) callback();
 	}
 	
 	function animate() {
@@ -275,132 +287,157 @@ var m_arr;
 
 	}
 	
-	//操纵按钮
-	var btns = document.getElementById("controller").getElementsByTagName("span");
-	btns[ 0].addEventListener( "click", function(){
-		morph.position.y += 50;
-		//camera.position.y -= 50;
-	}, false);
-	btns[ 1].addEventListener( "click", function(){
-		morph.rotation.y -= 0.1;
-		console.log( morph);
-	}, false);
-	btns[ 3].addEventListener( "click", function(){
-		morph.rotation.y += 0.1;
-	}, false);
-	btns[ 4].addEventListener( "click", function(){
-		morph.position.y -= 50;
-	}, false);
-	btns[ 5].addEventListener( "click", function(){
-		camera.position.z -= 50;
-		console.log( camera.position.z);
-	}, false);
-	btns[ 6].addEventListener( "click", function(){
-		camera.position.z += 50;
-	}, false);
+	function changeMeshArrPosition( index, value){
+		for( var i = 0, len = mesh_arr.length; i < len; i++){
+			mesh_arr[ i].position[ index] += value;
+		}
+	}
+	function changeMeshArrRotation( index, value){
+		for( var i = 0, len = mesh_arr.length; i < len; i++){
+			mesh_arr[ i].rotation[ index] += value;
+		}
+	}
+	function setMeshArrTargetInfluences( index, value){
+		for( var i = 0, len = mesh_arr.length; i < len; i++){
+			mesh_arr[ i].morphTargetInfluences[ index] = value;
+		}
+	}
 	
-	//鼠标拖拽
-	var mousedown = false;
-	var startX, startY;
-	container.addEventListener( "mousedown", function( event){
-		mousedown = true;
-		startX = event.clientX;
-		startY = event.clientY;
-	}, false);
-	container.addEventListener( "mousemove", function( event){
-		if( mousedown){
-			morph.rotation.y -= ( startX - event.clientX)*0.05;
-			morph.position.y += ( startY - event.clientY);
+	function addController(){
+		var loading = document.getElementById("loading");
+		loading.parentNode.removeChild( loading);
+		//操纵按钮
+		var btns = document.getElementById("controller").getElementsByTagName("span");
+		btns[ 0].addEventListener( "click", function(){
+			//morph.position.y += 50;
+			//camera.position.y -= 50;
+			changeMeshArrPosition( 'y', 50);
+		}, false);
+		btns[ 1].addEventListener( "click", function(){
+			//morph.rotation.y -= 0.1;
+			changeMeshArrRotation( 'y', -0.1);
+		}, false);
+		btns[ 3].addEventListener( "click", function(){
+			//morph.rotation.y += 0.1;
+			changeMeshArrRotation( 'y', 0.1);
+		}, false);
+		btns[ 4].addEventListener( "click", function(){
+			//morph.position.y -= 50;
+			changeMeshArrPosition( 'y', -50);
+		}, false);
+		btns[ 5].addEventListener( "click", function(){
+			camera.position.z -= 50;
+		}, false);
+		btns[ 6].addEventListener( "click", function(){
+			camera.position.z += 50;
+		}, false);
+		
+		//鼠标拖拽
+		var mousedown = false;
+		var startX, startY;
+		container.addEventListener( "mousedown", function( event){
+			mousedown = true;
 			startX = event.clientX;
 			startY = event.clientY;
-		}
-	}, false);
-	container.addEventListener( "mouseup", function( event){
-		mousedown = false;
-	}, false);
-	
-	//滚动放大缩小
-	var wheelHandler = function( event){
-		var delta = 0;  
-        if (!event) /* For IE. */  
-     
-		event = window.event;  
-   		if (event.wheelDelta) { /* IE/Opera. */  
-			delta = event.wheelDelta / 120;  
-		} else if (event.detail) {  
-			delta = -event.detail / 3;  
-		}  
-		if( delta > 0){
-			camera.position.z -= 40;
-		}
-		else if( delta < 0){
-			camera.position.z += 40;
-		}
-		if (event.preventDefault)  
-			event.preventDefault();  
-		event.returnValue = false;  
-	}
-	container.addEventListener('DOMMouseScroll', wheelHandler, false);
-	container.onmousewheel = wheelHandler;
-	
-	//拖动调节透明度
-	var layer_btn = document.getElementById( "layer_btn");
-	var layer_btn_drag = false;
-	var layer_btn_startY;
-	layer_btn.addEventListener( "mousedown", function( event){
-		layer_btn_drag = true;
-		layer_btn_startY = event.clientY;
-	}, false);
-	document.addEventListener( "mousemove", function( event){
-		if( layer_btn_drag){
-			var top = parseInt( layer_btn.style.top);
-			if( !top) top = 0;
-			top += event.clientY - layer_btn_startY;
-			if( top >= 0 && top <= 180){
-				layer_btn.style.top = top + "px";
-				setMaterialsOpacity( materials_arr[0], ( 180 - top) / 180);
+		}, false);
+		container.addEventListener( "mousemove", function( event){
+			if( mousedown){
+				//morph.rotation.y -= ( startX - event.clientX)*0.05;
+				//morph.position.y += ( startY - event.clientY);
+				changeMeshArrRotation( 'y', -( startX - event.clientX)*0.05);
+				changeMeshArrPosition( 'y', startY - event.clientY);
+				startX = event.clientX;
+				startY = event.clientY;
 			}
+		}, false);
+		container.addEventListener( "mouseup", function( event){
+			mousedown = false;
+		}, false);
+		
+		//滚动放大缩小
+		var wheelHandler = function( event){
+			var delta = 0;  
+			if (!event) /* For IE. */  
+		 
+			event = window.event;  
+			if (event.wheelDelta) { /* IE/Opera. */  
+				delta = event.wheelDelta / 120;  
+			} else if (event.detail) {  
+				delta = -event.detail / 3;  
+			}  
+			if( delta > 0){
+				camera.position.z -= 40;
+			}
+			else if( delta < 0){
+				camera.position.z += 40;
+			}
+			if (event.preventDefault)  
+				event.preventDefault();  
+			event.returnValue = false;  
+		}
+		container.addEventListener('DOMMouseScroll', wheelHandler, false);
+		container.onmousewheel = wheelHandler;
+		
+		//拖动调节透明度
+		var layer_btn = document.getElementById( "layer_btn");
+		var layer_btn_drag = false;
+		var layer_btn_startY;
+		layer_btn.addEventListener( "mousedown", function( event){
+			layer_btn_drag = true;
 			layer_btn_startY = event.clientY;
-		}
-	}, false);
-	document.addEventListener( "mouseup", function(){
-		layer_btn_drag = false;
-	}, false);
-	document.addEventListener( "mouseleave", function(){
-		layer_btn_drag = false;
-	}, false);
-	
-	//拖动调节动画
-	var animation_btn = document.getElementById( "animation_btn");
-	var animation_btn_drag = false;
-	var animation_btn_startY;
-	var lastKeyframe = 0;
-	animation_btn.addEventListener( "mousedown", function( event){
-		animation_btn_drag = true;
-		animation_btn_startY = event.clientY;
-	}, false);
-	document.addEventListener( "mousemove", function( event){
-		if( animation_btn_drag){
-			var top = parseInt( animation_btn.style.top);
-			if( !top) top = 0;
-			top += event.clientY - animation_btn_startY;
-			if( top >= 0 && top <= 80){
-				animation_btn.style.top = top + "px";
-				var keyframes = morph.morphTargetInfluences.length - 1;// total number of animation frames
-				morph.morphTargetInfluences[ lastKeyframe] = 0;
-				lastKeyframe = parseInt( keyframes * ( top / 80));
-				morph.morphTargetInfluences[ lastKeyframe] = 1;
+		}, false);
+		document.addEventListener( "mousemove", function( event){
+			if( layer_btn_drag){
+				var top = parseInt( layer_btn.style.top);
+				if( !top) top = 0;
+				top += event.clientY - layer_btn_startY;
+				if( top >= 0 && top <= 180){
+					layer_btn.style.top = top + "px";
+					setMaterialsOpacity( materials_arr[0], ( 180 - top) / 180);
+				}
+				layer_btn_startY = event.clientY;
 			}
+		}, false);
+		document.addEventListener( "mouseup", function(){
+			layer_btn_drag = false;
+		}, false);
+		document.addEventListener( "mouseleave", function(){
+			layer_btn_drag = false;
+		}, false);
+		
+		//拖动调节动画
+		var animation_btn = document.getElementById( "animation_btn");
+		var animation_btn_drag = false;
+		var animation_btn_startY;
+		var lastKeyframe = 0;
+		animation_btn.addEventListener( "mousedown", function( event){
+			animation_btn_drag = true;
 			animation_btn_startY = event.clientY;
-			//morph.morphTargetInfluences[ 12] = 1;
-			//console.log( lastKeyframe+','+keyframes);
-			console.log( morph.morphTargetInfluences);
-		}
-	}, false);
-	document.addEventListener( "mouseup", function(){
-		animation_btn_drag = false;
-	}, false);
-	document.addEventListener( "mouseleave", function(){
-		animation_btn_drag = false;
-	}, false);
+		}, false);
+		document.addEventListener( "mousemove", function( event){
+			if( animation_btn_drag){
+				var top = parseInt( animation_btn.style.top);
+				if( !top) top = 0;
+				top += event.clientY - animation_btn_startY;
+				if( top >= 0 && top <= 80){
+					animation_btn.style.top = top + "px";
+					var keyframes = morph.morphTargetInfluences.length - 1;// total number of animation frames
+					//morph.morphTargetInfluences[ lastKeyframe] = 0;
+					setMeshArrTargetInfluences( lastKeyframe, 0);
+					lastKeyframe = parseInt( keyframes * ( top / 80));
+					//morph.morphTargetInfluences[ lastKeyframe] = 1;
+					setMeshArrTargetInfluences( lastKeyframe, 1);
+				}
+				animation_btn_startY = event.clientY;
+				//morph.morphTargetInfluences[ 12] = 1;
+				//console.log( lastKeyframe+','+keyframes);
+			}
+		}, false);
+		document.addEventListener( "mouseup", function(){
+			animation_btn_drag = false;
+		}, false);
+		document.addEventListener( "mouseleave", function(){
+			animation_btn_drag = false;
+		}, false);
+	}
 })()
