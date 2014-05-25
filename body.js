@@ -1,6 +1,14 @@
-var m_arr;
 (function(){
 
+	//存储所有mesh的数组
+	var mesh_arr = [];
+	//旋转中心
+	var pivot = new THREE.Object3D();
+	var sphere = new THREE.Mesh(
+		new THREE.SphereGeometry(1,1),                //width,height,depth
+		new THREE.MeshLambertMaterial({color: 0xff00ff}) //材质设定
+	);
+	
 	var SCREEN_WIDTH = window.innerWidth;
 	var SCREEN_HEIGHT = window.innerHeight;
 	var FLOOR = -250;
@@ -10,7 +18,6 @@ var m_arr;
 	var camera, scene;
 	var renderer;
 	var morph, materials_arr = m_arr = [];
-	var mesh_arr = [];
 	
 	var mesh;
 	
@@ -63,6 +70,7 @@ var m_arr;
 		// LIGHTS
 
 		var ambient = new THREE.AmbientLight( 0xffffff );
+		ambient = new THREE.AmbientLight( 0xff0000 );
 		scene.add( ambient );
 
 
@@ -122,10 +130,12 @@ var m_arr;
 		//loader.load( "./three.js webgl - skinning + morphing [knight]_files/wholeman.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, -300, 60 ) } );
 				
 		//wholeman_onlyBody
-		loader.load( "./javascripts/wholeman_skeletal_5231.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, -300, 60 ) } );
-		loader.load( "./javascripts/wholeman_muscular_5231.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, -300, 60 , addController) } );
+		loader.load( "./javascripts/wholeman_skeletal_5231.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, 0, 60 ) } );
+		loader.load( "./javascripts/wholeman_muscular_5231.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, 0, 60 , addController) } );
 		
 		//
+		
+        scene.add(sphere);
 
 		window.addEventListener( 'resize', onWindowResize, false );
 		
@@ -226,6 +236,15 @@ var m_arr;
 		
 		mesh_arr.push( morph);
 		/*
+		var matrix = new THREE.Matrix4().makeTranslation( 0, 8, 0 );
+		morph.geometry.applyMatrix( matrix );
+		*/
+		
+		pivot.add( morph );
+		scene.add( pivot );
+		
+		console.log( morph);
+		/*
 		var cubeGeometry = new THREE.CubeGeometry(150, 150, 150); 
 		var cubeMaterials = [ 
                      new THREE.MeshBasicMaterial({color:0xFF0000}), 
@@ -315,6 +334,8 @@ var m_arr;
 		}, false);
 		btns[ 1].addEventListener( "click", function(){
 			//morph.rotation.y -= 0.1;
+			//mesh_arr[0].geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 100, 10.1, 10.1 ) );
+			//mesh_arr[0].geometry.verticesNeedUpdate = true;
 			changeMeshArrRotation( 'y', -0.1);
 		}, false);
 		btns[ 3].addEventListener( "click", function(){
@@ -344,8 +365,13 @@ var m_arr;
 			if( mousedown){
 				//morph.rotation.y -= ( startX - event.clientX)*0.05;
 				//morph.position.y += ( startY - event.clientY);
+				//console.log( THREE.GeometryUtils.center);
+				var xAxis = new THREE.Vector3(0,0,1);
+				//rotateAroundObjectAxis( mesh_arr[1], xAxis, -( startY - event.clientY)*0.05);
 				changeMeshArrRotation( 'y', -( startX - event.clientX)*0.05);
-				changeMeshArrPosition( 'y', startY - event.clientY);
+				//changeMeshArrRotation( 'x', -( startY - event.clientY)*0.05);
+				pivot.rotation.x += -( startY - event.clientY)*0.05;
+				//changeMeshArrPosition( 'y', startY - event.clientY);
 				startX = event.clientX;
 				startY = event.clientY;
 			}
@@ -440,4 +466,33 @@ var m_arr;
 			animation_btn_drag = false;
 		}, false);
 	}
+	
+	var rotWorldMatrix, myrotation = 0;
+	// Rotate an object around an arbitrary axis in world space 
+	/*
+	function rotateAroundWorldAxis( object, axis, radians ) {
+
+		var rotationMatrix = new THREE.Matrix4();
+
+		rotationMatrix.makeRotationAxis( axis.normalize(), radians );
+		rotationMatrix.multiplySelf( object.matrix );                       // pre-multiply
+		object.matrix = rotationMatrix;
+		object.rotation.setEulerFromRotationMatrix( object.matrix );
+	}	
+	*/
+	function rotateAroundObjectAxis(object, axis, radians) {
+		rotObjectMatrix = new THREE.Matrix4();
+		rotObjectMatrix.makeRotationAxis(axis.normalize(), radians);
+
+		// old code for Three.JS pre r54:
+		// object.matrix.multiplySelf(rotObjectMatrix);      // post-multiply
+		// new code for Three.JS r55+:
+		object.matrix.multiply(rotObjectMatrix);
+
+		// old code for Three.js pre r49:
+		// object.rotation.getRotationFromMatrix(object.matrix, object.scale);
+		// new code for Three.js r50+:
+		object.rotation.setFromRotationMatrix(object.matrix);
+	}
+	
 })()
