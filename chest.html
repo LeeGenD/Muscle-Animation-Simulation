@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<!-- saved from url=(0077)http://mrdoob.github.io/three.js/examples/webgl_animation_skinning_morph.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>Model</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #000;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+
+				background-color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+			}
+
+			a {
+				color: #0af;
+			}
+
+			#stats { position: absolute; top:0; left: 0 }
+			#stats #fps { background: transparent !important }
+			#stats #fps #fpsText { color: #777 !important }
+			#stats #fps #fpsGraph { display: none }
+			
+			#controller{
+				text-align: center;
+				position: fixed;
+				left: 0;
+				top: 50px;
+			}
+			#controller .btn{
+				display: inline-block;
+				width: 30px;
+				height: 30px;
+				border: 1px solid gray;
+				color: gray;
+				vertical-align: middle;
+				cursor: pointer;
+				user-select: none;
+				-moz-user-select: none;
+				-khtml-user-select: none;
+			}
+			#controller .btn:hover{
+				border: 1px solid black;
+				color: black;
+			}
+			#controller .rotation{
+				margin: 10px;
+			}
+			#controller .scale{
+				margin: 10px;
+			}
+			#controller .layer_wrapper{
+				width: 20px;
+				height: 200px;
+				border: 1px solid black;
+				margin: 0 auto;
+				position: relative;
+			}
+			#controller .layer_wrapper .mark{
+				position: absolute;
+				margin: 0;
+				left: 22px;
+			}
+			#controller .layer_wrapper .muscale{
+				top: 0;
+			}
+			#controller .layer_wrapper .sketal{
+				bottom: 0;
+			}
+			#controller .layer_wrapper .start{
+				top: 0;
+			}
+			#controller .layer_wrapper .end{
+				bottom: 0;
+			}
+			#controller .layer_wrapper .btn{
+				width: 20px;
+				height: 20px;
+				border: none;
+				background: gray;
+				position: absolute;
+				cursor: pointer;
+				top: 0;
+				left: 0;
+			}
+			#controller .animation{
+				margin-top: 10px;
+			}
+			#controller .animation .layer_wrapper{
+				height: 100px;
+			}
+			#loading{
+				position: absolute;
+				z-index: 9999;
+				width: 100px;
+				height: 100px;
+				top: 50%;
+				left: 50%;
+				margin-left: -50px;
+				margin-top: -50px;
+			}
+		</style>
+	<style type="text/css">#yddContainer{display:block;font-family:Microsoft YaHei;position:relative;width:100%;height:100%;top:-4px;left:-4px;font-size:12px;border:1px solid}#yddTop{display:block;height:22px}#yddTopBorderlr{display:block;position:static;height:17px;padding:2px 28px;line-height:17px;font-size:12px;color:#5079bb;font-weight:bold;border-style:none solid;border-width:1px}#yddTopBorderlr .ydd-sp{position:absolute;top:2px;height:0;overflow:hidden}.ydd-icon{left:5px;width:17px;padding:0px 0px 0px 0px;padding-top:17px;background-position:-16px -44px}.ydd-close{right:5px;width:16px;padding-top:16px;background-position:left -44px}#yddKeyTitle{float:left;text-decoration:none}#yddMiddle{display:block;margin-bottom:10px}.ydd-tabs{display:block;margin:5px 0;padding:0 5px;height:18px;border-bottom:1px solid}.ydd-tab{display:block;float:left;height:18px;margin:0 5px -1px 0;padding:0 4px;line-height:18px;border:1px solid;border-bottom:none}.ydd-trans-container{display:block;line-height:160%}.ydd-trans-container a{text-decoration:none;}#yddBottom{position:absolute;bottom:0;left:0;width:100%;height:22px;line-height:22px;overflow:hidden;background-position:left -22px}.ydd-padding010{padding:0 10px}#yddWrapper{color:#252525;z-index:10001;background:url(chrome-extension://eopjamdnofihpioajgfdikhhbobonhbb/ab20.png);}#yddContainer{background:#fff;border-color:#4b7598}#yddTopBorderlr{border-color:#f0f8fc}#yddWrapper .ydd-sp{background-image:url(chrome-extension://eopjamdnofihpioajgfdikhhbobonhbb/ydd-sprite.png)}#yddWrapper a,#yddWrapper a:hover,#yddWrapper a:visited{color:#50799b}#yddWrapper .ydd-tabs{color:#959595}.ydd-tabs,.ydd-tab{background:#fff;border-color:#d5e7f3}#yddBottom{color:#363636}#yddWrapper{min-width:250px;max-width:400px;}</style></head>
+
+	<body ryt13248="1" onselectstart="return false">
+		<div style="background:#eeeeee;">
+			<a href="./body.html">hand</a>
+			<a href="./foot.html">foot</a>
+			<span>chest</span>
+		</div>
+		<div id="container">
+			<img id="loading" src="./img/loading.gif" />
+		</div>
+
+		<div id="info">
+
+		</div>
+		
+		<div id="controller" onselectstart="javascript:return false;">
+			<div class="rotation">
+				<div><span class="btn">up</span></div>
+				<div>
+					<span class="btn">left</span><span class="btn"> </span><span class="btn">right</span>
+				</div>
+				<div><span class="btn">down</span></div>
+			</div>
+			<div class="scale">
+				<span class="btn">+</span><span class="btn">-</span>
+			</div>
+			<div class="layer">
+				<div class="layer_wrapper">
+					<p class="mark muscale">Muscale</p>
+					<p class="mark sketal">Sketal</p>
+					<span class="btn" id="layer_btn"></span>
+				</div>
+			</div>
+			<div class="animation">
+				<div class="layer_wrapper">
+					<p class="mark start">Start</p>
+					<p class="mark end">End</p>
+					<span class="btn" id="animation_btn"></span>
+				</div>
+			</div>
+		</div>
+
+		<script src="./javascripts/three.min.js"></script>
+
+		<script src="./javascripts/Detector.js"></script>
+		<script src="./javascripts/stats.min.js"></script>
+		<script src="./chest.js"></script>
+	
+	</body>
+</html>
