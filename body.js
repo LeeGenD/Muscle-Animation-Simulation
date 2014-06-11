@@ -1,12 +1,12 @@
 (function(){
 
-	//�洢����mesh������
+	//存储所有mesh的数组
 	var mesh_arr = [];
-	//��ת����
+	//旋转中心
 	var pivot = new THREE.Object3D();
 	var sphere = new THREE.Mesh(
 		new THREE.SphereGeometry(1,1),                //width,height,depth
-		new THREE.MeshLambertMaterial({color: 0xff00ff}) //�����趨
+		new THREE.MeshLambertMaterial({color: 0xff00ff}) //材质设定
 	);
 	
 	var SCREEN_WIDTH = window.innerWidth;
@@ -62,7 +62,7 @@
 		var ground = new THREE.Mesh( planeGeometry, groundMaterial );
 		ground.position.set( 0, FLOOR, 0 );
 		ground.rotation.x = -Math.PI/2;
-		scene.add( ground );
+		//scene.add( ground );
 
 		ground.receiveShadow = true;
 
@@ -156,7 +156,7 @@
 		for( var i = 0, len = materials.length; i < len; i++){	
 			var material = materials[ i ];
 			if( opacity === 0){
-				//material.visible = false;
+				material.visible = false;
 			}
 			else{
 				material.visible = true;
@@ -325,26 +325,30 @@
 	function addController(){
 		var loading = document.getElementById("loading");
 		loading.parentNode.removeChild( loading);
-		//���ݰ�ť
+		//操纵按钮
 		var btns = document.getElementById("controller").getElementsByTagName("span");
 		btns[ 0].addEventListener( "click", function(){
 			//morph.position.y += 50;
 			//camera.position.y -= 50;
-			changeMeshArrPosition( 'y', 50);
+			//changeMeshArrPosition( 'y', 50);
+			pivot.rotation.x -= 0.1;
 		}, false);
 		btns[ 1].addEventListener( "click", function(){
 			//morph.rotation.y -= 0.1;
 			//mesh_arr[0].geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 100, 10.1, 10.1 ) );
 			//mesh_arr[0].geometry.verticesNeedUpdate = true;
-			changeMeshArrRotation( 'y', -0.1);
+			//changeMeshArrRotation( 'y', -0.1);
+			pivot.rotation.y -= 0.1;
 		}, false);
 		btns[ 3].addEventListener( "click", function(){
 			//morph.rotation.y += 0.1;
-			changeMeshArrRotation( 'y', 0.1);
+			//changeMeshArrRotation( 'y', 0.1);
+			pivot.rotation.y += 0.1;
 		}, false);
 		btns[ 4].addEventListener( "click", function(){
 			//morph.position.y -= 50;
-			changeMeshArrPosition( 'y', -50);
+			//changeMeshArrPosition( 'y', -50);
+			pivot.rotation.x += 0.1;
 		}, false);
 		btns[ 5].addEventListener( "click", function(){
 			camera.position.z -= 50;
@@ -353,7 +357,7 @@
 			camera.position.z += 50;
 		}, false);
 		
-		//������ק
+		//鼠标拖拽
 		var mousedown = false;
 		var startX, startY;
 		container.addEventListener( "mousedown", function( event){
@@ -363,12 +367,10 @@
 		}, false);
 		container.addEventListener( "mousemove", function( event){
 			if( mousedown){
-				//morph.rotation.y -= ( startX - event.clientX)*0.05;
-				//morph.position.y += ( startY - event.clientY);
-				//console.log( THREE.GeometryUtils.center);
 				var xAxis = new THREE.Vector3(0,0,1);
 				//rotateAroundObjectAxis( mesh_arr[1], xAxis, -( startY - event.clientY)*0.05);
-				changeMeshArrRotation( 'y', -( startX - event.clientX)*0.05);
+				//changeMeshArrRotation( 'y', -( startX - event.clientX)*0.05);
+				pivot.rotation.y += -( startX - event.clientX)*0.05;
 				//changeMeshArrRotation( 'x', -( startY - event.clientY)*0.05);
 				pivot.rotation.x += -( startY - event.clientY)*0.05;
 				//changeMeshArrPosition( 'y', startY - event.clientY);
@@ -380,7 +382,7 @@
 			mousedown = false;
 		}, false);
 		
-		//�����Ŵ���С
+		//滚动放大缩小
 		var wheelHandler = function( event){
 			var delta = 0;  
 			if (!event) /* For IE. */  
@@ -404,7 +406,7 @@
 		container.addEventListener('DOMMouseScroll', wheelHandler, false);
 		container.onmousewheel = wheelHandler;
 		
-		//�϶�����͸����
+		//拖动调节透明度
 		var layer_btn = document.getElementById( "layer_btn");
 		var layer_btn_drag = false;
 		var layer_btn_startY;
@@ -431,7 +433,7 @@
 			layer_btn_drag = false;
 		}, false);
 		
-		//�϶����ڶ���
+		//拖动调节动画
 		var animation_btn = document.getElementById( "animation_btn");
 		var animation_btn_drag = false;
 		var animation_btn_startY;
