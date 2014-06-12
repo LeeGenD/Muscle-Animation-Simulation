@@ -130,8 +130,10 @@
 		//loader.load( "./three.js webgl - skinning + morphing [knight]_files/wholeman.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, -300, 60 ) } );
 				
 		//wholeman_onlyBody
-		loader.load( "./javascripts/light.js", function ( geometry, materials ) { createNervousLight( geometry, materials, 0, FLOOR, 0, 60 ) } );
+
 		loader.load( "./javascripts/wholeman_skeletal_5231.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, 0, 60 ) } );
+		loader.load( "./javascripts/light_send.js", function ( geometry, materials ) { createNervousLight( geometry, materials, 0, FLOOR, 0, 60, 0x00ff00 ) } );
+		loader.load( "./javascripts/light_get.js", function ( geometry, materials ) { createNervousLight( geometry, materials, 0, FLOOR, 0, 60, 0xFFD700 ) } );
 		loader.load( "./javascripts/wholeman_muscular_5231.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, 0, 60 , addController) } );
 		
 		//
@@ -249,7 +251,7 @@
 		if( callback) callback();
 	}
 	
-	function createNervousLight( geometry, materials, x, y, z, s , callback) {
+	function createNervousLight( geometry, materials, x, y, z, s , color,callback) {
 				
 		var muscular_materials = [], other_materials = [];
 		for( var i = 0, len = materials.length; i < len; i++){
@@ -270,7 +272,7 @@
 			material = materials[ i ];
 			material.morphTargets = true;
 			material.transparent = true;
-			material.color.setHex( 0xeeee00 );
+			material.color.setHex( color );
 			material.ambient.setHex( 0x222222 );
 			material.fog = false;
 		}
