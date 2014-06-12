@@ -418,7 +418,13 @@
 	}
 	function setMeshArrTargetInfluences( index, value){
 		for( var i = 0, len = mesh_arr.length; i < len; i++){
-			mesh_arr[ i].morphTargetInfluences[ index] = value;
+			if( i<= 1){
+				mesh_arr[ i].morphTargetInfluences[ index%7] = value;
+				console.log( mesh_arr[ i]);
+			}
+			else{
+				mesh_arr[ i].morphTargetInfluences[ index] = value;
+			}
 		}
 	}
 	
