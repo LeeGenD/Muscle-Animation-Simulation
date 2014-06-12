@@ -1,12 +1,12 @@
 (function(){
 
-	//å­˜å‚¨æ‰€æœ‰meshçš„æ•°ç»„
+	//´æ´¢ËùÓĞmeshµÄÊı×é
 	var mesh_arr = [];
-	//æ—‹è½¬ä¸­å¿ƒ
+	//Ğı×ªÖĞĞÄ
 	var pivot = new THREE.Object3D();
 	var sphere = new THREE.Mesh(
 		new THREE.SphereGeometry(1,1),                //width,height,depth
-		new THREE.MeshLambertMaterial({color: 0xff00ff}) //æè´¨è®¾å®š
+		new THREE.MeshLambertMaterial({color: 0xff00ff}) //²ÄÖÊÉè¶¨
 	);
 	
 	var SCREEN_WIDTH = window.innerWidth;
@@ -101,7 +101,7 @@
 
 		// RENDERER
 				
-		renderer = new THREE.WebGLRenderer( { antialias: true } );
+		renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
 		renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
 		renderer.domElement.style.position = "relative";
 
@@ -130,11 +130,12 @@
 		//loader.load( "./three.js webgl - skinning + morphing [knight]_files/wholeman.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, -300, 60 ) } );
 				
 		//wholeman_onlyBody
+		loader.load( "./javascripts/light.js", function ( geometry, materials ) { createNervousLight( geometry, materials, 0, FLOOR, 0, 60 ) } );
 		loader.load( "./javascripts/wholeman_skeletal_5231.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, 0, 60 ) } );
 		loader.load( "./javascripts/wholeman_muscular_5231.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, 0, 60 , addController) } );
 		
 		//
-		
+		//sphere.position.set( 5, 110, 10);
         scene.add(sphere);
 
 		window.addEventListener( 'resize', onWindowResize, false );
@@ -244,27 +245,124 @@
 		scene.add( pivot );
 		
 		console.log( morph);
+		
+		if( callback) callback();
+	}
+	
+	function createNervousLight( geometry, materials, x, y, z, s , callback) {
+				
+		var muscular_materials = [], other_materials = [];
+		for( var i = 0, len = materials.length; i < len; i++){
+			if( materials[ i].name.indexOf( "Muscular") !== -1){
+			//if( materials[ i].name.indexOf( "Skeletal_Skeleton") == -1){
+				muscular_materials.push( materials[ i]);
+			}
+			else{
+				other_materials.push( materials[ i]);
+			}
+		}
+		if( muscular_materials.length){
+			materials_arr.push( muscular_materials);
+		}
+		
+		var material = materials[ 0 ];
+		for( var i = 0, len = materials.length; i < len; i++){	
+			material = materials[ i ];
+			material.morphTargets = true;
+			material.transparent = true;
+			material.color.setHex( 0xeeee00 );
+			material.ambient.setHex( 0x222222 );
+			material.fog = false;
+		}
+				
+		//material.needsUpdate = true;
+		geometry.buffersNeedUpdate = true;
+		geometry.uvsNeedUpdate = true;
+				
+				
+		var faceMaterial = new THREE.MeshFaceMaterial( materials );
+
+		//morph = new THREE.MorphAnimMesh( geometry, faceMaterial );
+		morph = new THREE.Mesh( geometry, faceMaterial );
+		
+		//morph.computeTangents();
+		// one second duration
+
+		morph.duration = 1000;
+
+		// random animation offset
+
+		morph.time = 1000 * Math.random();
+
+		morph.scale.set( s, s, s );
+
+		//morph.position.set( x, 0, z );
 		/*
-		var cubeGeometry = new THREE.CubeGeometry(150, 150, 150); 
-		var cubeMaterials = [ 
-                     new THREE.MeshBasicMaterial({color:0xFF0000}), 
-                     new THREE.MeshBasicMaterial({color:0x00FF00}), 
-                     new THREE.MeshBasicMaterial({color:0x0000FF}), 
-                     new THREE.MeshBasicMaterial({color:0xFFFF00}), 
-                     new THREE.MeshBasicMaterial({color:0x00FFFF}), 
-                     new THREE.MeshBasicMaterial({color:0xFFFFFF}) 
-                 ]; 
-  
-                 // Create a MeshFaceMaterial, which allows the cube to have different materials on 
-                 // each face 
-                 var cubeMaterial = new THREE.MeshFaceMaterial(cubeMaterials); 
-  
-                 // Create a mesh and insert the geometry and the material. Translate the whole mesh 
-                 // by 1.5 on the x axis and by 4 on the z axis and add the mesh to the scene. 
-                 cubeMesh = new THREE.Mesh(cubeGeometry, cubeMaterial); 
-                 cubeMesh.position.set( x, -100, z); 
-                 scene.add(cubeMesh); 
+		var light = new THREE.PointLight( 0xeeee00, 1, 100 );
+		light.position.set( 5, 110, 10);
+		scene.add( light );
 		*/
+		
+		var textureFlare0 = THREE.ImageUtils.loadTexture( "../textures/lensflare0.png" );
+		var textureFlare2 = THREE.ImageUtils.loadTexture( "../textures/lensflare2.png" );
+		var textureFlare3 = THREE.ImageUtils.loadTexture( "../textures/lensflare3.png" );
+		//addLight( 0.08, 0.8, 0.5,    5, 110, 10 );
+		function addLight( h, s, l, x, y, z ) {
+
+			var light = new THREE.PointLight( 0xeeee00, 1.5, 4500 );
+			light.color.setHSL( h, s, l );
+			light.position.set( x, y, z );
+			scene.add( light );
+			
+			var flareColor = new THREE.Color( 0xffffff );
+			flareColor.setHSL( h, s, l + 0.5 );
+
+			var lensFlare = new THREE.LensFlare( textureFlare0, 7, 0.0, THREE.AdditiveBlending, flareColor );
+
+			//lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
+			//lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
+			//lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
+
+			//lensFlare.add( textureFlare3, 60, 0.6, THREE.AdditiveBlending );
+			//lensFlare.add( textureFlare3, 70, 0.7, THREE.AdditiveBlending );
+			//lensFlare.add( textureFlare3, 120, 0.9, THREE.AdditiveBlending );
+			//lensFlare.add( textureFlare3, 70, 1.0, THREE.AdditiveBlending );
+
+			//lensFlare.customUpdateCallback = lensFlareUpdateCallback;
+			lensFlare.position = light.position;
+
+			scene.add( lensFlare );
+			
+			pivot.add( lensFlare );
+			pivot.add( light );
+
+		}
+		
+		
+		
+		morph.position.set( x, -249.5544394, z);
+		//morph.rotation.y = THREE.Math.randFloat( -0.25, 0.25 );
+
+		//morph.matrixAutoUpdate = false;
+		morph.updateMatrix();
+		//morph.castShadow = true;
+		morph.receiveShadow = true;
+		
+		scene.add( morph );
+		console.log( scene);
+		morph.morphTargetInfluences[ 0] = 1;
+		console.log( morph.morphTargetInfluences);
+		
+		mesh_arr.push( morph);
+		/*
+		var matrix = new THREE.Matrix4().makeTranslation( 0, 8, 0 );
+		morph.geometry.applyMatrix( matrix );
+		*/
+		
+		pivot.add( morph );
+		scene.add( pivot );
+		
+		console.log( morph);
 		
 		if( callback) callback();
 	}
@@ -325,7 +423,7 @@
 	function addController(){
 		var loading = document.getElementById("loading");
 		loading.parentNode.removeChild( loading);
-		//æ“çºµæŒ‰é’®
+		//²Ù×İ°´Å¥
 		var btns = document.getElementById("controller").getElementsByTagName("span");
 		btns[ 0].addEventListener( "click", function(){
 			//morph.position.y += 50;
@@ -357,7 +455,7 @@
 			camera.position.z += 50;
 		}, false);
 		
-		//é¼ æ ‡æ‹–æ‹½
+		//Êó±êÍÏ×§
 		var mousedown = false;
 		var startX, startY;
 		container.addEventListener( "mousedown", function( event){
@@ -382,7 +480,7 @@
 			mousedown = false;
 		}, false);
 		
-		//æ»šåŠ¨æ”¾å¤§ç¼©å°
+		//¹ö¶¯·Å´óËõĞ¡
 		var wheelHandler = function( event){
 			var delta = 0;  
 			if (!event) /* For IE. */  
@@ -406,7 +504,7 @@
 		container.addEventListener('DOMMouseScroll', wheelHandler, false);
 		container.onmousewheel = wheelHandler;
 		
-		//æ‹–åŠ¨è°ƒèŠ‚é€æ˜åº¦
+		//ÍÏ¶¯µ÷½ÚÍ¸Ã÷¶È
 		var layer_btn = document.getElementById( "layer_btn");
 		var layer_btn_drag = false;
 		var layer_btn_startY;
@@ -433,7 +531,7 @@
 			layer_btn_drag = false;
 		}, false);
 		
-		//æ‹–åŠ¨è°ƒèŠ‚åŠ¨ç”»
+		//ÍÏ¶¯µ÷½Ú¶¯»­
 		var animation_btn = document.getElementById( "animation_btn");
 		var animation_btn_drag = false;
 		var animation_btn_startY;
