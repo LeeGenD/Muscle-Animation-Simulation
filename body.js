@@ -131,9 +131,9 @@
 				
 		//wholeman_onlyBody
 
-		loader.load( "./javascripts/wholeman_skeletal_5231.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, 0, 60 ) } );
 		loader.load( "./javascripts/light_send.js", function ( geometry, materials ) { createNervousLight( geometry, materials, 0, FLOOR, 0, 60, 0x00ff00 ) } );
 		loader.load( "./javascripts/light_get.js", function ( geometry, materials ) { createNervousLight( geometry, materials, 0, FLOOR, 0, 60, 0xFFD700 ) } );
+		loader.load( "./javascripts/wholeman_skeletal_5231.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, 0, 60 ) } );
 		loader.load( "./javascripts/wholeman_muscular_5231.js", function ( geometry, materials ) { createScene( geometry, materials, 0, FLOOR, 0, 60 , addController) } );
 		
 		//
